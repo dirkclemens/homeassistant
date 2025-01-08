@@ -1,0 +1,46 @@
+blueprint:
+  name: Notification for Open Windows/Doors
+  description: Sends a notification when selected sensors remain "on" for a specified duration.
+  domain: automation
+  input:
+    sensors:
+      name: Window/Door Sensors
+      description: Select the sensors to monitor.
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: true
+    delay:
+      name: Delay (Duration)
+      description: How long the sensor must remain "on" before sending a notification.
+      default: 00:30:00
+      selector:
+        duration:
+    notification_device:
+      name: Notification Device
+      description: Select the device to receive the notification (e.g., your iPhone).
+      selector:
+        entity:
+          domain: notify
+    notification_title:
+      name: Notification Title
+      description: The title of the notification.
+      default: "Window or Door is Open"
+    notification_message:
+      name: Notification Message
+      description: The content of the notification. The name of the triggered sensor will be added automatically.
+      default: "{{ trigger.to_state.name }} has been open for more than {{ delay }}."
+
+trigger:
+  - platform: state
+    entity_id: !input sensors
+    to: 'on'
+    for: !input delay
+
+action:
+  - service: !input notification_device
+    data:
+      title: !input notification_title
+      message: !input notification_message
+
+mode: single
